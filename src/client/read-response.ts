@@ -1,4 +1,4 @@
-import type { Item } from "../types";
+import type { Item } from "../common/types";
 import { readItems } from "./items-handler";
 
 async function* readLines(stream: ReadableStream<any>): AsyncGenerator<Item> {

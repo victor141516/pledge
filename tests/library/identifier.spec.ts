@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { REGEXP } from "../../src/identifier";
+import { describe, it, expect } from "vitest";
+import { REGEXP } from "../../src/common/identifier";
 
 describe("REGEXP", () => {
   it("should match valid placeholder patterns", () => {

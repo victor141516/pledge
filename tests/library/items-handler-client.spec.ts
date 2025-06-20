@@ -1,14 +1,7 @@
-// test/client/items-handler.test.ts
 import { describe, it, expect, vi } from "vitest";
 import { readItems } from "../../src/client/items-handler";
-import type { Item } from "../../src/types";
 import { polyfillPromiseWithResolvers } from "../utils";
-
-// Mock typecheck
-vi.mock("../typecheck", () => ({
-  isObject: (value: any) =>
-    value !== null && typeof value === "object" && !Array.isArray(value),
-}));
+import type { Item } from "../../src/common/types";
 
 // Helper function to create async generator from array
 async function* createAsyncGenerator<T>(items: T[]): AsyncGenerator<T> {

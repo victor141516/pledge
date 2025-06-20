@@ -3,14 +3,6 @@ import { createItems } from "../../src/server/items-handler";
 import { readItems } from "../../src/client/items-handler";
 import { polyfillPromiseWithResolvers } from "../utils";
 
-// Mock typecheck for both server and client
-vi.mock("../typecheck", () => ({
-  isObject: (value: any) =>
-    value !== null && typeof value === "object" && !Array.isArray(value),
-  isPromise: (value: any) => value && typeof value.then === "function",
-  isString: (value: any) => typeof value === "string",
-}));
-
 polyfillPromiseWithResolvers();
 
 describe("Integration Tests", () => {

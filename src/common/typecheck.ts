@@ -3,7 +3,7 @@ export function isPromise(e: unknown): e is Promise<unknown> {
 }
 
 export function isObject(e: unknown): e is Record<string, any> {
-  return e !== null && typeof e === "object";
+  return e !== null && typeof e === "object" && !Array.isArray(e);
 }
 
 export function isString(e: unknown): e is string {

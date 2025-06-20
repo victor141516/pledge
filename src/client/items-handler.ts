@@ -1,6 +1,7 @@
-import { REGEXP } from "../identifier";
-import { isObject } from "../typecheck";
-import type { Item } from "../types";
+import { REGEXP } from "../common/identifier";
+import { isObject } from "../common/typecheck";
+import type { Item } from "../common/types";
+
 /**
  * Reconstructs an object from a stream of items, replacing placeholders
  * with promises that resolve when the corresponding items arrive.

@@ -1,14 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { createItems } from "../../src/server/items-handler";
 
-// Mock typecheck
-vi.mock("../typecheck", () => ({
-  isObject: (value: any) =>
-    value !== null && typeof value === "object" && !Array.isArray(value),
-  isPromise: (value: any) => value && typeof value.then === "function",
-  isString: (value: any) => typeof value === "string",
-}));
-
 describe("createItems", () => {
   it("should handle simple object without promises", async () => {
     const data = { name: "John", age: 30 };

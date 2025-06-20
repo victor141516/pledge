@@ -21,7 +21,7 @@ describe("readResponse", () => {
       },
     });
 
-    const response = new Response(stream);
+    const response = new globalThis.Response(stream);
     const expectedResult = { test: "resolved" };
 
     vi.mocked(
@@ -52,7 +52,7 @@ describe("readResponse", () => {
       },
     });
 
-    const response = new Response(stream);
+    const response = new globalThis.Response(stream);
     const expectedResult = { test: "resolved" };
 
     vi.mocked(
@@ -80,7 +80,7 @@ describe("readResponse", () => {
       },
     });
 
-    const response = new Response(stream);
+    const response = new globalThis.Response(stream);
     const expectedResult = { test: "value" };
 
     vi.mocked(

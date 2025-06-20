@@ -1,6 +1,6 @@
-import { REGEXP } from "../identifier";
-import { isArray, isObject, isPromise, isString } from "../typecheck";
-import type { Item } from "../types";
+import { REGEXP } from "../common/identifier";
+import { isArray, isObject, isPromise, isString } from "../common/typecheck";
+import type { Item } from "../common/types";
 
 /**
  * Creates a stream of items from an object containing promises.

@@ -19,7 +19,7 @@ export function createResponse(toSend: any) {
     },
   });
 
-  return new Response(stream, {
+  return new globalThis.Response(stream, {
     headers: {
       "Content-Type": "application/x-jsonlines",
       "Transfer-Encoding": "chunked",

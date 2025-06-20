@@ -1,3 +1,5 @@
+import { createResponse } from "../create-response";
+
 type ExpressResponse = {
   status: (code: number) => void;
   setHeaders: (
@@ -7,19 +9,19 @@ type ExpressResponse = {
   write: (chunk: any, encoding?: BufferEncoding) => boolean;
   end: () => boolean;
   destroy: () => boolean;
-  sendPledge: (bunResponse: globalThis.Response) => void;
+  sendPledge: (vanillaResponse: globalThis.Response) => void;
 };
 
-async function streamBunResponse(
-  expressRes: ExpressResponse,
-  bunResponse: Response
+async function streamVanillaResponse(
+  expressResponse: ExpressResponse,
+  vanillaResponse: Response
 ) {
-  expressRes.status(bunResponse.status);
-  expressRes.setHeaders(bunResponse.headers);
-  expressRes.removeHeader("Transfer-Encoding");
+  expressResponse.status(vanillaResponse.status);
+  expressResponse.setHeaders(vanillaResponse.headers);
+  expressResponse.removeHeader("Transfer-Encoding");
 
-  if (bunResponse.body) {
-    const reader = bunResponse.body.getReader();
+  if (vanillaResponse.body) {
+    const reader = vanillaResponse.body.getReader();
 
     try {
       while (true) {
@@ -27,31 +29,31 @@ async function streamBunResponse(
 
         if (done) break;
 
-        expressRes.write(Buffer.from(value));
+        expressResponse.write(Buffer.from(value));
       }
-      expressRes.end();
+      expressResponse.end();
     } catch (error) {
       console.error("Streaming error:", error);
-      expressRes.destroy();
+      expressResponse.destroy();
     } finally {
       reader.releaseLock();
     }
   } else {
-    expressRes.end();
+    expressResponse.end();
   }
 }
 
 declare global {
   namespace Express {
     interface Response {
-      sendPledge(response: globalThis.Response): Promise<void>;
+      sendPledge(data: any): Promise<void>;
     }
   }
 }
 
 export function pledgeMiddleware(_: unknown, res: any, next: () => void): void {
-  res.sendPledge = async (bunResponse: globalThis.Response) =>
-    streamBunResponse(res, bunResponse);
+  res.sendPledge = async (data: any) =>
+    streamVanillaResponse(res, createResponse(data));
 
   next();
 }

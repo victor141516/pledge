@@ -7,7 +7,7 @@ polyfillPromiseWithResolvers();
 describe("Browser integration", () => {
   it("should return the expected", async () => {
     const pledge = await readResponse<MockData>(
-      new Response(`{"type":"main-skeleton","skeleton":{"b":4,"c":"$0$","d":"$1$","e":"$2$","f":"$3$","g":{"h":"$4$","i":{"j":"$5$"}}}}
+      new globalThis.Response(`{"type":"main-skeleton","skeleton":{"b":4,"c":"$0$","d":"$1$","e":"$2$","f":"$3$","g":{"h":"$4$","i":{"j":"$5$"}}}}
 {"type":"partial","index":4,"value":6}
 {"type":"partial","index":5,"value":7}
 {"type":"sub-skeleton","index":3,"skeleton":{"k":{"l":10,"m":"$6$"}}}
