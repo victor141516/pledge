@@ -1,5 +1,5 @@
 import { REGEXP } from "../identifier";
-import { isObject, isPromise, isString } from "../typecheck";
+import { isArray, isObject, isPromise, isString } from "../typecheck";
 import type { Item } from "../types";
 
 /**
@@ -42,6 +42,10 @@ export async function* createItems(data: any): AsyncGenerator<Item> {
   function processObject(obj: any): any {
     if (!isObject(obj)) {
       return obj;
+    }
+
+    if (isArray(obj)) {
+      return obj.map((item) => processObject(item));
     }
 
     const processed = { ...obj };

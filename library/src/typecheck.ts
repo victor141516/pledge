@@ -9,3 +9,7 @@ export function isObject(e: unknown): e is Record<string, any> {
 export function isString(e: unknown): e is string {
   return typeof e === "string";
 }
+
+export function isArray(e: unknown): e is any[] {
+  return Array.isArray(e);
+}

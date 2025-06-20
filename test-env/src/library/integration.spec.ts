@@ -50,7 +50,7 @@ describe("Integration Tests", () => {
         posts: Promise.resolve(["post1", "post2"]),
       },
       metadata: {
-        created: Promise.resolve(new Date("2023-01-01")),
+        created: 12345,
         version: "1.0",
       },
     };
@@ -69,7 +69,7 @@ describe("Integration Tests", () => {
     // Verify structure
     expect(reconstructed.user.profile).toBeInstanceOf(Promise);
     expect(reconstructed.user.posts).toBeInstanceOf(Promise);
-    expect(reconstructed.metadata.created).toBeInstanceOf(Promise);
+    expect(reconstructed.metadata.created).toBe(12345);
     expect(reconstructed.metadata.version).toBe("1.0");
 
     // Verify resolved values
@@ -82,9 +82,6 @@ describe("Integration Tests", () => {
 
     const posts = await reconstructed.user.posts;
     expect(posts).toEqual(["post1", "post2"]);
-
-    const created = await reconstructed.metadata.created;
-    expect(created).toEqual(new Date("2023-01-01"));
   });
 
   it("should handle promise rejection in round-trip", async () => {

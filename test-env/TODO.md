@@ -1,3 +1,2 @@
-- [ ] It's not working well for arrays
 - [ ] Add tests with supertest
 - [ ] Add tests with JSDOM
