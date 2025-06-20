@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { createItems } from "../../../library/src/server/items-handler";
-import { readItems } from "../../../library/src/client/items-handler";
+import { createItems } from "../../src/server/items-handler";
+import { readItems } from "../../src/client/items-handler";
 import { polyfillPromiseWithResolvers } from "../utils";
 
 // Mock typecheck for both server and client

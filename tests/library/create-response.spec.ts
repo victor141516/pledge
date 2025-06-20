@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { createResponse } from "../../../library/src/server/create-response";
+import { createResponse } from "../../src/server/create-response";
 
 // Mock the items-handler
-vi.mock("../../../library/src/server/items-handler", () => ({
+vi.mock("../../src/server/items-handler", () => ({
   createItems: vi.fn(),
 }));
 
@@ -15,7 +15,7 @@ describe("createResponse", () => {
     };
 
     vi.mocked(
-      await import("../../../library/src/server/items-handler")
+      await import("../../src/server/items-handler")
     ).createItems.mockReturnValue(mockGenerator);
 
     const response = createResponse({ test: "data" });
@@ -42,7 +42,7 @@ describe("createResponse", () => {
     };
 
     vi.mocked(
-      await import("../../../library/src/server/items-handler")
+      await import("../../src/server/items-handler")
     ).createItems.mockReturnValue(mockGenerator);
 
     const response = createResponse({ test: "data" });
@@ -62,7 +62,7 @@ describe("createResponse", () => {
     };
 
     vi.mocked(
-      await import("../../../library/src/server/items-handler")
+      await import("../../src/server/items-handler")
     ).createItems.mockReturnValue(mockGenerator);
 
     const response = createResponse({ test: "data" });

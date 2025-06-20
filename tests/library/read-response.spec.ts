@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { readResponse } from "../../../library/src/client/read-response";
+import { readResponse } from "../../src/client/read-response";
 
 // Mock items-handler
-vi.mock("../../../library/src/client/items-handler", () => ({
+vi.mock("../../src/client/items-handler", () => ({
   readItems: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ describe("readResponse", () => {
     const expectedResult = { test: "resolved" };
 
     vi.mocked(
-      await import("../../../library/src/client/items-handler")
+      await import("../../src/client/items-handler")
     ).readItems.mockResolvedValue(expectedResult);
 
     const result = await readResponse(response);
@@ -56,7 +56,7 @@ describe("readResponse", () => {
     const expectedResult = { test: "resolved" };
 
     vi.mocked(
-      await import("../../../library/src/client/items-handler")
+      await import("../../src/client/items-handler")
     ).readItems.mockResolvedValue(expectedResult);
 
     const result = await readResponse(response);
@@ -84,7 +84,7 @@ describe("readResponse", () => {
     const expectedResult = { test: "value" };
 
     vi.mocked(
-      await import("../../../library/src/client/items-handler")
+      await import("../../src/client/items-handler")
     ).readItems.mockResolvedValue(expectedResult);
 
     const result = await readResponse(response);

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createItems } from "../../../library/src/server/items-handler";
+import { createItems } from "../../src/server/items-handler";
 
 // Mock typecheck
 vi.mock("../typecheck", () => ({

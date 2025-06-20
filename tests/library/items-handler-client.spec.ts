@@ -1,7 +1,7 @@
 // test/client/items-handler.test.ts
 import { describe, it, expect, vi } from "vitest";
-import { readItems } from "../../../library/src/client/items-handler";
-import type { Item } from "../../../library/src/types";
+import { readItems } from "../../src/client/items-handler";
+import type { Item } from "../../src/types";
 import { polyfillPromiseWithResolvers } from "../utils";
 
 // Mock typecheck

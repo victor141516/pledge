@@ -1,6 +1,6 @@
 import express from "express";
-import { pledgeMiddleware } from "@victor141516/pledge/adapters/express";
-import { createResponse } from "@victor141516/pledge/server";
+import { pledgeMiddleware } from "../src/server/adapters/express";
+import { createResponse } from "../src/server";
 
 export function polyfillPromiseWithResolvers() {
   // @ts-expect-error

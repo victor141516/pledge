@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readResponse } from "../../../library/src/client/read-response";
 import { polyfillPromiseWithResolvers, type MockData } from "../utils";
+import { readResponse } from "../../src/client";
 
 polyfillPromiseWithResolvers();
 

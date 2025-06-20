@@ -1,2 +1,0 @@
-- [ ] Add tests with supertest
-- [ ] Add tests with JSDOM
