@@ -43,9 +43,12 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
           case "partial":
             const partialResolver = promiseResolvers.get(item.index);
             if (!partialResolver) {
-              throw new Error(
-                `No resolver found for partial item at index: ${item.index}`
+              console.warn(
+                `No resolver found for partial item at index: ${
+                  item.index
+                } ${JSON.stringify(item)}`
               );
+              break;
             }
             partialResolver(item.value);
             promiseResolvers.delete(item.index);
@@ -54,9 +57,12 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
           case "sub-skeleton":
             const skeletonResolver = promiseResolvers.get(item.index);
             if (!skeletonResolver) {
-              throw new Error(
-                `No resolver found for sub-skeleton item at index: ${item.index}`
+              console.warn(
+                `No resolver found for sub-skeleton item at index: ${
+                  item.index
+                } ${JSON.stringify(item)}`
               );
+              break;
             }
             replacePlaceholders(item.skeleton);
             skeletonResolver(item.skeleton);
@@ -64,7 +70,7 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
             break;
 
           default:
-            throw new Error(`Unknown item type: ${(item as any).type}`);
+            console.warn("Unknown item type:", JSON.stringify(item));
         }
       }
     } catch (error) {

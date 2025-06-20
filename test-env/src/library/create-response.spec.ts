@@ -1,0 +1,72 @@
+import { describe, it, expect, vi } from "vitest";
+import { createResponse } from "../../../library/src/server/create-response";
+
+// Mock the items-handler
+vi.mock("../../../library/src/server/items-handler", () => ({
+  createItems: vi.fn(),
+}));
+
+describe("createResponse", () => {
+  it("should create a Response with correct headers", async () => {
+    const mockGenerator = {
+      async *[Symbol.asyncIterator]() {
+        yield { type: "main-skeleton", skeleton: { test: "value" } };
+      },
+    };
+
+    vi.mocked(
+      await import("../../../library/src/server/items-handler")
+    ).createItems.mockReturnValue(mockGenerator);
+
+    const response = createResponse({ test: "data" });
+
+    expect(response).toBeInstanceOf(Response);
+    expect(response.headers.get("Content-Type")).toBe(
+      "application/x-jsonlines"
+    );
+    expect(response.headers.get("Transfer-Encoding")).toBe("chunked");
+  });
+
+  it("should stream JSON lines from generator", async () => {
+    const mockItems = [
+      { type: "main-skeleton", skeleton: { test: "value" } },
+      { type: "partial", index: 0, value: "resolved" },
+    ];
+
+    const mockGenerator = {
+      async *[Symbol.asyncIterator]() {
+        for (const item of mockItems) {
+          yield item;
+        }
+      },
+    };
+
+    vi.mocked(
+      await import("../../../library/src/server/items-handler")
+    ).createItems.mockReturnValue(mockGenerator);
+
+    const response = createResponse({ test: "data" });
+    const text = await response.text();
+
+    const lines = text.trim().split("\n");
+    expect(lines).toHaveLength(2);
+    expect(JSON.parse(lines[0])).toEqual(mockItems[0]);
+    expect(JSON.parse(lines[1])).toEqual(mockItems[1]);
+  });
+
+  it("should handle generator errors", async () => {
+    const mockGenerator = {
+      async *[Symbol.asyncIterator]() {
+        throw new Error("Generator error");
+      },
+    };
+
+    vi.mocked(
+      await import("../../../library/src/server/items-handler")
+    ).createItems.mockReturnValue(mockGenerator);
+
+    const response = createResponse({ test: "data" });
+
+    await expect(response.text()).rejects.toThrow("Generator error");
+  });
+});

@@ -28,6 +28,10 @@ A TypeScript library for streaming objects containing promises over HTTP using J
 npm install @victor141516/pledge
 ```
 
-🤝 Contributing
+## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.📄 LicenseMIT License - see LICENSE file for details.
+Contributions are welcome! Please feel free to submit a Pull Request.📄
+
+## License
+
+MIT License - see LICENSE file for details.

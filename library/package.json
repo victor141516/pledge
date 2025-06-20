@@ -1,0 +1,22 @@
+{
+  "name": "@victor141516/pledge",
+  "exports": {
+    "./client": {
+      "default": "./src/client/index.ts"
+    },
+    "./server": {
+      "default": "./src/server/index.ts"
+    },
+    "./adapters/express": {
+      "default": "./src/server/adapters/express.ts"
+    }
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/express": "5.0.3",
+    "@types/node": "24.0.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
