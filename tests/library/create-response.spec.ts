@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { createResponse } from "../../src/server/create-response";
+import type { createItems } from "../../src/server/items-handler";
 
 // Mock the items-handler
 vi.mock("../../src/server/items-handler", () => ({
@@ -12,7 +13,7 @@ describe("createResponse", () => {
       async *[Symbol.asyncIterator]() {
         yield { type: "main-skeleton", skeleton: { test: "value" } };
       },
-    };
+    } as ReturnType<typeof createItems>;
 
     vi.mocked(
       await import("../../src/server/items-handler")
@@ -39,7 +40,7 @@ describe("createResponse", () => {
           yield item;
         }
       },
-    };
+    } as ReturnType<typeof createItems>;
 
     vi.mocked(
       await import("../../src/server/items-handler")
@@ -50,8 +51,8 @@ describe("createResponse", () => {
 
     const lines = text.trim().split("\n");
     expect(lines).toHaveLength(2);
-    expect(JSON.parse(lines[0])).toEqual(mockItems[0]);
-    expect(JSON.parse(lines[1])).toEqual(mockItems[1]);
+    expect(JSON.parse(lines[0]!)).toEqual(mockItems[0]);
+    expect(JSON.parse(lines[1]!)).toEqual(mockItems[1]);
   });
 
   it("should handle generator errors", async () => {
@@ -59,7 +60,7 @@ describe("createResponse", () => {
       async *[Symbol.asyncIterator]() {
         throw new Error("Generator error");
       },
-    };
+    } as unknown as ReturnType<typeof createItems>;
 
     vi.mocked(
       await import("../../src/server/items-handler")

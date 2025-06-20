@@ -91,10 +91,22 @@ describe("createItems", () => {
     const partialItems = items.slice(1);
     expect(partialItems).toHaveLength(2);
     expect(
-      partialItems.some((item) => item.index === 0 && item.value === "first")
+      partialItems.some(
+        (item) =>
+          "index" in item &&
+          item.index === 0 &&
+          "value" in item &&
+          item.value === "first"
+      )
     ).toBe(true);
     expect(
-      partialItems.some((item) => item.index === 1 && item.value === 123)
+      partialItems.some(
+        (item) =>
+          "index" in item &&
+          item.index === 1 &&
+          "value" in item &&
+          item.value === 123
+      )
     ).toBe(true);
   });
 
