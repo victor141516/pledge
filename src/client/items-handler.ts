@@ -7,7 +7,10 @@ import type { Item } from "../common/types";
  * with promises that resolve when the corresponding items arrive.
  */
 export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
-  const promiseResolvers = new Map<number, (value: any) => void>();
+  const promiseResolvers = new Map<
+    number,
+    { resolve: (value: any) => void; reject: (value: any) => void }
+  >();
 
   /**
    * Recursively replaces placeholder strings with promises.
@@ -22,8 +25,8 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
         const placeholderMatch = value.match(REGEXP);
         if (placeholderMatch && placeholderMatch[1]) {
           const index = parseInt(placeholderMatch[1], 10);
-          const { promise, resolve } = Promise.withResolvers();
-          promiseResolvers.set(index, resolve);
+          const { promise, resolve, reject } = Promise.withResolvers();
+          promiseResolvers.set(index, { resolve, reject });
           obj[key] = promise;
         }
       } else if (isObject(value)) {
@@ -41,9 +44,10 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
             resolveMain(item.skeleton);
             break;
 
-          case "partial":
-            const partialResolver = promiseResolvers.get(item.index);
-            if (!partialResolver) {
+          case "partial": {
+            const { resolve: partialResolver, reject: partialRejecter } =
+              promiseResolvers.get(item.index) ?? {};
+            if (!partialResolver || !partialRejecter) {
               console.warn(
                 `No resolver found for partial item at index: ${
                   item.index
@@ -51,13 +55,19 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
               );
               break;
             }
-            partialResolver(item.value);
+            if (item.isError) {
+              partialRejecter(item.value);
+            } else {
+              partialResolver(item.value);
+            }
             promiseResolvers.delete(item.index);
             break;
+          }
 
-          case "sub-skeleton":
-            const skeletonResolver = promiseResolvers.get(item.index);
-            if (!skeletonResolver) {
+          case "sub-skeleton": {
+            const { resolve: skeletonResolver, reject: skeletonRejecter } =
+              promiseResolvers.get(item.index) ?? {};
+            if (!skeletonResolver || !skeletonRejecter) {
               console.warn(
                 `No resolver found for sub-skeleton item at index: ${
                   item.index
@@ -69,6 +79,7 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
             skeletonResolver(item.skeleton);
             promiseResolvers.delete(item.index);
             break;
+          }
 
           default:
             console.warn("Unknown item type:", JSON.stringify(item));

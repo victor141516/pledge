@@ -7,6 +7,7 @@ export type PartialItem = {
   type: "partial";
   index: number;
   value: any;
+  isError: boolean;
 };
 
 export type SubSkeletonItem = {

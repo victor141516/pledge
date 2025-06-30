@@ -18,19 +18,30 @@ export async function* createItems(data: any): AsyncGenerator<Item> {
     promise: Promise<any>,
     index: number
   ): Promise<Item> {
-    const resolvedValue = await promise;
+    const resolvedValue = await promise.then(
+      (value) => ({ value, isError: false }),
+      (value) => ({ value, isError: true })
+    );
 
-    if (isObject(resolvedValue)) {
+    if (resolvedValue.isError) {
+      return {
+        type: "partial",
+        index,
+        value: resolvedValue,
+        isError: true,
+      };
+    } else if (isObject(resolvedValue.value)) {
       return {
         type: "sub-skeleton",
         index,
-        skeleton: processObject(resolvedValue),
+        skeleton: processObject(resolvedValue.value),
       };
     } else {
       return {
         type: "partial",
         index,
         value: resolvedValue,
+        isError: false,
       };
     }
   }
