@@ -35,6 +35,7 @@ export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
   return new Promise(async (resolveMain, rejectMain) => {
     try {
       for await (const item of itemStream) {
+
         switch (item.type) {
           case "main-skeleton":
             replacePlaceholders(item.skeleton);

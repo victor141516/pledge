@@ -22,7 +22,9 @@ async function* readLines(stream: ReadableStream<any>): AsyncGenerator<Item> {
       buffer = lines.pop() || "";
 
       for (const line of lines) {
-        yield JSON.parse(line);
+        if (line.trim()) {
+          yield JSON.parse(line);
+        }
       }
     }
   } finally {
