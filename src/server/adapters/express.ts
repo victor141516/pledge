@@ -23,20 +23,7 @@ async function streamVanillaResponse(
   expressResponse.setHeaders(vanillaResponse.headers);
   expressResponse.removeHeader("Transfer-Encoding");
 
-  // Get the abort controller from the response if available
-  const abortController = (vanillaResponse as any)._abortController;
-
-  // Handle request close/abort events
-  const handleRequestClose = () => {
-    if (abortController) {
-      abortController.abort();
-    }
-  };
-
-  if (req) {
-    req.on('close', handleRequestClose);
-    req.on('aborted', handleRequestClose);
-  }
+  // Client disconnect handling is now managed by the middleware
 
   if (vanillaResponse.body) {
     const reader = vanillaResponse.body.getReader();
@@ -62,12 +49,6 @@ async function streamVanillaResponse(
       }
     } finally {
       reader.releaseLock();
-      
-      // Clean up event listeners
-      if (req) {
-        req.removeListener('close', handleRequestClose);
-        req.removeListener('aborted', handleRequestClose);
-      }
     }
   } else {
     expressResponse.end();
@@ -77,14 +58,32 @@ async function streamVanillaResponse(
 declare global {
   namespace Express {
     interface Response {
-      sendPledge(data: any, abortSignal?: AbortSignal): Promise<void>;
+      sendPledge(data: any): Promise<void>;
     }
   }
 }
 
 export function pledgeMiddleware(req: any, res: any, next: () => void): void {
-  res.sendPledge = async (data: any, abortSignal?: AbortSignal) =>
-    streamVanillaResponse(res, createResponse(data, abortSignal), req);
+  res.sendPledge = async (data: any) => {
+    // Create internal AbortController to handle client disconnects
+    const abortController = new AbortController();
+    
+    // Handle client disconnect events
+    const handleDisconnect = () => {
+      abortController.abort();
+    };
+    
+    req.on('close', handleDisconnect);
+    req.on('aborted', handleDisconnect);
+    
+    try {
+      await streamVanillaResponse(res, createResponse(data, abortController.signal), req);
+    } finally {
+      // Clean up event listeners
+      req.removeListener('close', handleDisconnect);
+      req.removeListener('aborted', handleDisconnect);
+    }
+  };
 
   next();
 }

@@ -6,31 +6,8 @@ import type { Item } from "../common/types";
  * Reconstructs an object from a stream of items, replacing placeholders
  * with promises that resolve when the corresponding items arrive.
  */
-export function readItems(itemStream: AsyncGenerator<Item>, abortSignal?: AbortSignal): Promise<any> {
+export function readItems(itemStream: AsyncGenerator<Item>): Promise<any> {
   const promiseResolvers = new Map<number, (value: any) => void>();
-  const promiseRejecters = new Map<number, (reason?: any) => void>();
-
-  // Handle abort signal
-  const handleAbort = () => {
-    const abortError = new Error('Request aborted');
-    abortError.name = 'AbortError';
-    
-    // Reject all pending promises
-    for (const reject of promiseRejecters.values()) {
-      reject(abortError);
-    }
-    
-    // Clear the maps
-    promiseResolvers.clear();
-    promiseRejecters.clear();
-  };
-
-  if (abortSignal) {
-    if (abortSignal.aborted) {
-      return Promise.reject(new Error('Request aborted'));
-    }
-    abortSignal.addEventListener('abort', handleAbort);
-  }
 
   /**
    * Recursively replaces placeholder strings with promises.
@@ -45,9 +22,8 @@ export function readItems(itemStream: AsyncGenerator<Item>, abortSignal?: AbortS
         const placeholderMatch = value.match(REGEXP);
         if (placeholderMatch && placeholderMatch[1]) {
           const index = parseInt(placeholderMatch[1], 10);
-          const { promise, resolve, reject } = Promise.withResolvers();
+          const { promise, resolve } = Promise.withResolvers();
           promiseResolvers.set(index, resolve);
-          promiseRejecters.set(index, reject);
           obj[key] = promise;
         }
       } else if (isObject(value)) {
@@ -59,12 +35,6 @@ export function readItems(itemStream: AsyncGenerator<Item>, abortSignal?: AbortS
   return new Promise(async (resolveMain, rejectMain) => {
     try {
       for await (const item of itemStream) {
-        // Check if aborted before processing each item
-        if (abortSignal?.aborted) {
-          handleAbort();
-          rejectMain(new Error('Request aborted'));
-          return;
-        }
 
         switch (item.type) {
           case "main-skeleton":
@@ -84,7 +54,6 @@ export function readItems(itemStream: AsyncGenerator<Item>, abortSignal?: AbortS
             }
             partialResolver(item.value);
             promiseResolvers.delete(item.index);
-            promiseRejecters.delete(item.index);
             break;
 
           case "sub-skeleton":
@@ -100,7 +69,6 @@ export function readItems(itemStream: AsyncGenerator<Item>, abortSignal?: AbortS
             replacePlaceholders(item.skeleton);
             skeletonResolver(item.skeleton);
             promiseResolvers.delete(item.index);
-            promiseRejecters.delete(item.index);
             break;
 
           default:
@@ -108,15 +76,7 @@ export function readItems(itemStream: AsyncGenerator<Item>, abortSignal?: AbortS
         }
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        handleAbort();
-      }
       rejectMain(error);
-    } finally {
-      // Clean up event listener
-      if (abortSignal) {
-        abortSignal.removeEventListener('abort', handleAbort);
-      }
     }
   });
 }
