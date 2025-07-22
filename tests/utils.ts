@@ -51,8 +51,7 @@ export function createServer() {
   app.use(pledgeMiddleware);
 
   app.get("/", async (_, res) => {
-    const response = createResponse(mockDataFactory());
-    res.sendPledge(response);
+    res.sendPledge(mockDataFactory());
   });
 
   return app;

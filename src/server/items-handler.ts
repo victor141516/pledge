@@ -6,9 +6,33 @@ import type { Item } from "../common/types";
  * Creates a stream of items from an object containing promises.
  * Promises are replaced with placeholders and yielded as separate items when resolved.
  */
-export async function* createItems(data: any): AsyncGenerator<Item> {
+export async function* createItems(data: any, abortSignal?: AbortSignal): AsyncGenerator<Item> {
   const pendingPromises = new Map<number, Promise<Item>>();
+  const promiseRejecters = new Map<number, (reason?: any) => void>();
   let nextPromiseIndex = 0;
+
+  // Handle abort signal
+  const handleAbort = () => {
+    const abortError = new Error('Request aborted');
+    abortError.name = 'AbortError';
+    
+    // Reject all pending promises
+    for (const reject of promiseRejecters.values()) {
+      reject(abortError);
+    }
+    
+    // Clear the maps
+    pendingPromises.clear();
+    promiseRejecters.clear();
+  };
+
+  if (abortSignal) {
+    if (abortSignal.aborted) {
+      handleAbort();
+      return;
+    }
+    abortSignal.addEventListener('abort', handleAbort);
+  }
 
   /**
    * Creates an Item from a promise, determining whether it should be
@@ -18,20 +42,39 @@ export async function* createItems(data: any): AsyncGenerator<Item> {
     promise: Promise<any>,
     index: number
   ): Promise<Item> {
-    const resolvedValue = await promise;
+    // Create a promise that can be rejected externally
+    let rejectPromise: (reason?: any) => void;
+    const abortablePromise = new Promise<any>((resolve, reject) => {
+      rejectPromise = reject;
+      promise.then(resolve, reject);
+    });
 
-    if (isObject(resolvedValue)) {
-      return {
-        type: "sub-skeleton",
-        index,
-        skeleton: processObject(resolvedValue),
-      };
-    } else {
-      return {
-        type: "partial",
-        index,
-        value: resolvedValue,
-      };
+    // Store the reject function for potential abort
+    promiseRejecters.set(index, rejectPromise!);
+
+    try {
+      const resolvedValue = await abortablePromise;
+      
+      // Remove the rejecter since promise resolved successfully
+      promiseRejecters.delete(index);
+
+      if (isObject(resolvedValue)) {
+        return {
+          type: "sub-skeleton",
+          index,
+          skeleton: processObject(resolvedValue),
+        };
+      } else {
+        return {
+          type: "partial",
+          index,
+          value: resolvedValue,
+        };
+      }
+    } catch (error) {
+      // Remove the rejecter since promise is no longer pending
+      promiseRejecters.delete(index);
+      throw error;
     }
   }
 
@@ -84,19 +127,32 @@ export async function* createItems(data: any): AsyncGenerator<Item> {
   };
 
   // Yield resolved items as they complete
-  while (pendingPromises.size > 0) {
-    const activePromises = Array.from(pendingPromises.values());
-    const resolvedItem = await Promise.race(activePromises);
+  try {
+    while (pendingPromises.size > 0) {
+      // Check if aborted before waiting for promises
+      if (abortSignal?.aborted) {
+        handleAbort();
+        return;
+      }
 
-    if (!("index" in resolvedItem)) {
-      throw new Error(
-        `Unexpected type of item: ${JSON.stringify(resolvedItem)}`
-      );
+      const activePromises = Array.from(pendingPromises.values());
+      const resolvedItem = await Promise.race(activePromises);
+
+      if (!("index" in resolvedItem)) {
+        throw new Error(
+          `Unexpected type of item: ${JSON.stringify(resolvedItem)}`
+        );
+      }
+
+      // Remove the resolved promise from pending set
+      pendingPromises.delete(resolvedItem.index);
+
+      yield resolvedItem;
     }
-
-    // Remove the resolved promise from pending set
-    pendingPromises.delete(resolvedItem.index);
-
-    yield resolvedItem;
+  } finally {
+    // Clean up event listener
+    if (abortSignal) {
+      abortSignal.removeEventListener('abort', handleAbort);
+    }
   }
 }

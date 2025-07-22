@@ -1,13 +1,18 @@
 import type { Item } from "../common/types";
 import { readItems } from "./items-handler";
 
-async function* readLines(stream: ReadableStream<any>): AsyncGenerator<Item> {
+async function* readLines(stream: ReadableStream<any>, abortSignal?: AbortSignal): AsyncGenerator<Item> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
 
   try {
     while (true) {
+      // Check if aborted before reading
+      if (abortSignal?.aborted) {
+        throw new Error('Request aborted');
+      }
+
       const { done, value } = await reader.read();
 
       if (done) {
@@ -22,7 +27,9 @@ async function* readLines(stream: ReadableStream<any>): AsyncGenerator<Item> {
       buffer = lines.pop() || "";
 
       for (const line of lines) {
-        yield JSON.parse(line);
+        if (line.trim()) {
+          yield JSON.parse(line);
+        }
       }
     }
   } finally {
@@ -30,8 +37,8 @@ async function* readLines(stream: ReadableStream<any>): AsyncGenerator<Item> {
   }
 }
 
-export async function readResponse<T = any>(response: Response) {
+export async function readResponse<T = any>(response: Response, abortSignal?: AbortSignal) {
   const stream = (await response.body)!;
-  const items = readLines(stream);
-  return readItems(items) as Promise<T>;
+  const items = readLines(stream, abortSignal);
+  return readItems(items, abortSignal) as Promise<T>;
 }
